@@ -1,4 +1,4 @@
-## Plan: Bible Web App with Accounts and MongoDB Realm
+## Plan: Bible Web App 2026 with Accounts and MongoDB Realm
 
 Build a full-stack Bible web app using MongoDB Atlas + Realm serverless backend and vanilla JavaScript, with user registration/login and persistent saved favorites. No Node.js server required.
 
@@ -59,3 +59,4 @@ Build a full-stack Bible web app using MongoDB Atlas + Realm serverless backend 
 1. Seed data approach: decide between a one-time script or a Realm trigger to load Bible verses.
 2. Frontend deployment: use Atlas App Services static hosting, Vercel, Netlify, or GitHub Pages.
 3. Performance: consider indexing the `verses` collection on (book, chapter, verse) for fast lookups.
+
