@@ -1,62 +1,72 @@
-## Plan: Bible Web App 2026 with Accounts and MongoDB Realm
+## Plan: Bible Web App 2026 with MongoDB Atlas Data API and Triggers
 
-Build a full-stack Bible web app using MongoDB Atlas + Realm serverless backend and vanilla JavaScript, with user registration/login and persistent saved favorites. No Node.js server required.
+Build a full-stack Bible web app using MongoDB Atlas Data API for direct database access and Atlas Triggers for event-driven serverless logic, with third-party authentication (e.g., Auth0) and vanilla JavaScript. No Node.js server required.
 
 **Steps**
 
-*Phase 1: Set up Atlas and Realm*
-1. Create a MongoDB Atlas cluster and a Realm app linked to it.
-2. Configure Realm authentication: email/password provider enabled.
-3. Create a seed data endpoint or trigger in Realm to ingest a public domain Bible dataset into the `verses` collection (executed once).
+_Phase 1: Set up Atlas and Data API_
 
-*Phase 2: Design collections and security*
-4. Create MongoDB collections:
+1. Create a MongoDB Atlas cluster.
+2. Enable the Atlas Data API on the cluster (via Atlas UI > Data API).
+3. Set up a third-party authentication provider (e.g., Auth0) for user registration/login, and configure it to store user IDs in MongoDB.
+4. Create a one-time seed script or Atlas Trigger to ingest a public domain Bible dataset into the `verses` collection.
+
+_Phase 2: Design collections and security_
+
+5. Create MongoDB collections:
    - `verses` for the Bible text (book, chapter, verse, text).
    - `favorites` for user-saved verse ranges (userId, bookName, chapterStart, verseStart, chapterEnd, verseEnd).
-   - Realm's built-in `users` collection handles email/password accounts.
-5. Configure Realm Rules (Row-Level Security) on `verses` (public read) and `favorites` (owner-only read/write).
+   - `users` for storing user data from the auth provider.
+6. Configure Data API access: Use API keys for read/write permissions, with role-based access (public read on `verses`, user-specific on `favorites` via queries).
 
-*Phase 3: Building Realm backend logic*
-6. Create Realm Functions for:
-   - Search/query Bible text (book, chapter, verse lookup).
-   - List favorites for the logged-in user.
-   - Create/delete a favorite entry.
-7. Optionally expose these as HTTPS endpoints via Realm HTTP Service.
+_Phase 3: Building backend logic with Atlas Triggers_
 
-*Phase 4: Build frontend*
-8. Create `public/` folder with vanilla JS frontend:
+7. Create Atlas Triggers for event-driven tasks:
+   - Scheduled Trigger: Run once to seed Bible data.
+   - Database Trigger on `favorites`: Handle deletions or notifications on changes.
+   - (Optional) Authentication Trigger: Sync user data on login.
+8. For interactive queries (search, list favorites), use Data API directly from frontend.
+
+_Phase 4: Build frontend_
+
+9. Create `public/` folder with vanilla JS frontend:
    - `index.html` — login/register forms, Bible browsing, search, favorites UI.
    - `styles.css` — layout and responsive design.
-   - `app.js` — state management, DOM updates, Realm SDK calls, auth handling.
-9. Install Realm Web SDK via npm or script tag in `index.html`.
-10. Wire frontend to Realm functions and auth using the Realm Web SDK (Realm.User.logInWithCredentials, callFunction, etc.).
+   - `app.js` — state management, DOM updates, Data API calls, auth integration.
+10. Integrate auth provider SDK (e.g., Auth0 SPA SDK) via npm or script tag.
+11. Wire frontend to Data API using fetch() for queries/inserts, and auth provider for login.
 
-*Phase 5: Deploy and test*
-11. Deploy frontend to a static host (Atlas App Services can serve static files, or use Firebase, Vercel, etc.).
-12. Test user registration, login, Bible search, favorite creation/deletion, and persistence.
+_Phase 5: Deploy and test_
+
+12. Deploy frontend to a static host (Vercel, Netlify, GitHub Pages, etc.).
+13. Test user registration, login, Bible search, favorite creation/deletion, and persistence.
 
 **Relevant files**
+
 - `public/index.html` — login, Bible UI, favorites.
 - `public/styles.css` — layout.
-- `public/app.js` — Realm SDK integration, state, DOM updates.
-- Realm dashboard: Functions, Rules, and Collections configuration (console-based, not local files).
-- Optional seed script (local Node.js script or Realm Function to load Bible data once).
+- `public/app.js` — Data API integration, state, DOM updates.
+- Atlas UI: Data API configuration, Triggers setup (console-based, not local files).
+- Optional seed script (local Node.js script to load Bible data once).
 
 **Verification**
-1. Set up Realm app and create `verses` collection with sample Bible data.
-2. Configure Realm Rules to allow public read on `verses` and owner-only on `favorites`.
+
+1. Enable Data API and create `verses` collection with sample Bible data.
+2. Set up auth provider and confirm user data syncs to MongoDB.
 3. Open frontend, register a user, and confirm auth works.
-4. Search or browse verses and confirm they load from MongoDB.
+4. Search or browse verses and confirm they load via Data API.
 5. Save a favorite, reload, and confirm it persists for that user.
 
 **Decisions**
-- Use Realm built-in auth (email/password) instead of custom JWT logic.
-- Store Bible text in MongoDB, use Realm Functions to query it.
-- Deploy frontend separately from Realm (or use Realm's static file hosting).
-- No local Node.js server—all backend logic is serverless via Realm.
+
+- Use third-party auth (e.g., Auth0) instead of deprecated Atlas auth.
+- Store Bible text in MongoDB, query via Data API.
+- Use Atlas Triggers for reactive/background tasks; Data API for direct frontend access.
+- Deploy frontend separately (no Atlas hosting).
 
 **Further Considerations**
-1. Seed data approach: decide between a one-time script or a Realm trigger to load Bible verses.
-2. Frontend deployment: use Atlas App Services static hosting, Vercel, Netlify, or GitHub Pages.
-3. Performance: consider indexing the `verses` collection on (book, chapter, verse) for fast lookups.
 
+1. Seed data approach: one-time local script or scheduled Atlas Trigger.
+2. Auth provider choice: Auth0, Firebase, or AWS Cognito.
+3. Performance: index `verses` on (book, chapter, verse); use Data API filters for security.
+4. Security: Store API keys securely; validate user IDs in queries.
